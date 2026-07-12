@@ -1,6 +1,12 @@
 from analysis.helpers.clean_word import clean_word
 
-def process_line(line: str):
+INVALID_STARTS = ['0', '&', '+', '-', '#', '‡']
+IGNORED_MORPHS = ['xxx', 'www', '?', '!', '„', '.', ',', '(.)']
+
+# Validates that a word is not empty or invalid
+validate = lambda w: w is not None and w is not '' and not w.isspace() and  not w.startswith('\x15') and w[0] not in INVALID_STARTS and w not in IGNORED_MORPHS
+
+def process_line(line: str, callback_func):
 
     # Track ignored bracketed sections
     angle_ignore = False
@@ -32,3 +38,18 @@ def process_line(line: str):
         elif word.endswith('>'):
             angle_ignore = False
             continue
+
+        # Noises or malformed words are skipped
+        if next_word and next_word in ['[/]', '[//]', '[///]', '[/?]', '[/-]']:
+            current_index += 2
+            next_word = clean_word(line_list[current_index])
+            continue
+
+        # There are instances of words that are not fully pronounced where the transcriber uses square 
+        # brackets after the word to indicate what the word should have been. This handles these instances 
+        # by skipping the unclear word and using the substituted word in the analysis instead
+        elif next_word == '[:':
+            word = clean_word(line_list[current_index + 2]).replace(']', '')
+            if validate(word):
+                callback_func(word)
+            square_ignore = True
