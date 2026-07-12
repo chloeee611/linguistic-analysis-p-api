@@ -45,8 +45,8 @@ def process_line(line: str, callback_func):
             next_word = clean_word(line_list[current_index])
             continue
 
-        # There are instances of words that are not fully pronounced where the transcriber uses square 
-        # brackets after the word to indicate what the word should have been. This handles these instances 
+        # There are instances of mispronounced words where the transcriber uses square brackets
+        # after the word to indicate what the word should have been. This handles these instances 
         # by skipping the unclear word and using the substituted word in the analysis instead
         elif next_word == '[:':
             word = clean_word(line_list[current_index + 2]).replace(']', '')
