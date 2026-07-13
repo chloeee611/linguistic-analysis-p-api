@@ -27,6 +27,7 @@ def process_line(line: str, callback_func):
         if word is None:
             continue
 
+        # If current word is the last, set next word to empty, otherwise populate next word
         if len(line_list) != current_index + 1:
             next_word = clean_word(line_list[current_index + 1])
         else:
@@ -53,3 +54,18 @@ def process_line(line: str, callback_func):
             if validate(word):
                 callback_func(word)
             square_ignore = True
+
+        # Handles other instances of square brackets
+        elif word.startswith('[') and not word.endswith(']'):
+            square_ignore = True
+
+        # Skips words which start and end with a square bracket
+        elif word.startswith('['):
+            current_index += 1
+            continue
+
+        # Ends the square_ignore if it has been previously set to true
+        elif word.endswith(']'):
+            square_ignore = False
+
+        current_index += 1
