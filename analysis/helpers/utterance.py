@@ -67,5 +67,24 @@ def process_line(line: str, callback_func):
         # Ends the square_ignore if it has been previously set to true
         elif word.endswith(']'):
             square_ignore = False
+        
+        # Skip if currently ignoring text because of brackets
+        elif not (square_ignore or angle_ignore):
+            if validate(word):
+                callback_func(word)
 
         current_index += 1
+
+def count_words(search_word: list[str], speaker_dict: dict[str, int], summary: dict[str, int | set], line: str):
+    def count(word: str):
+        if not search_word or word in search_word:
+            # If word isn't in counts yet, initialise it
+            # Otherwise, add 1 to existing word entry
+            if word in speaker_dict['counts']:
+                speaker_dict['counts'][word] += 1
+            else:
+                speaker_dict['counts'][word] = 1
+            
+            summary['total_count'] += 1
+    
+    return count
