@@ -1,15 +1,10 @@
 from supabase import create_client, Client
 from analysis.freq import freq
+from analysis.transcript import analyse_transcript_metadata
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from fastapi import FastAPI
-import os
 
-load_dotenv()
-
-url: str = os.getenv("SUPABASE_URL") or ""
-key: str = os.getenv("SUPABASE_PUBLISHABLE_KEY") or ""
-supabase: Client = create_client(url, key)
 app = FastAPI()
 
 class Item(BaseModel):
@@ -18,4 +13,9 @@ class Item(BaseModel):
 @app.post("/analysis/frequency")
 def read_root(item: Item):
     response = freq(item)
+    return response
+
+@app.post("/transcript/metadata")
+def transcript_metadata(item: Item):
+    response = analyse_transcript_metadata(item)
     return response
