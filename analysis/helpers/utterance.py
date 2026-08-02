@@ -88,3 +88,11 @@ def count_words(search_word: list[str], speaker_dict: dict[str, int], summary: d
             summary['total_count'] += 1
     
     return count
+
+def count_morphemes(counts: dict[str, int]):
+    def count(word: str):
+        if word in counts:
+            counts[word] += 1
+        else:
+            counts[word] = 1
+    return count

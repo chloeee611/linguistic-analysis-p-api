@@ -15,8 +15,6 @@ def freq(payload):
     speaker_summaries = {}
 
     for url in payload.urls:
-        file_url = url
-
         response = supabase.storage.from_("transcripts").download(url)
         data = response.decode("utf-8")
 
