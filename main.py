@@ -1,21 +1,28 @@
-from supabase import create_client, Client
-from analysis.freq import freq
 from analysis.transcript import analyse_transcript_metadata
-from dotenv import load_dotenv
-from pydantic import BaseModel
+from analysis.types.api_types import *
+from analysis.freq import freq
+from analysis.kwal import kwal
+from analysis.lexrare import lexrare
 from fastapi import FastAPI
 
 app = FastAPI()
 
-class Item(BaseModel):
-    urls: list[str]
-
-@app.post("/analysis/frequency")
-def read_root(item: Item):
-    response = freq(item)
+@app.post("/transcript/metadata")
+def transcript_metadata_endpoint(body: MetadataBody):
+    response = analyse_transcript_metadata(body)
     return response
 
-@app.post("/transcript/metadata")
-def transcript_metadata(item: Item):
-    response = analyse_transcript_metadata(item)
+@app.post("/analysis/frequency")
+def freq_endpoint(body: FreqBody):
+    response = freq(body)
+    return response
+
+@app.post("/analysis/kwal")
+def kwal_endpoint(body: KwalBody):
+    response = kwal(body)
+    return response
+
+@app.post("/analysis/lexrare")
+def lexrare_endpoint(body: LexBody):
+    response = lexrare(body)
     return response
