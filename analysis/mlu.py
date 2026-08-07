@@ -25,7 +25,7 @@ def mlu(payload: MluBody):
 
             if line.startswith("*"):
                 if line_split[0] not in file_analysis["counts"]:
-                    file_analysis["count"][line_split[0]] = {"utterances": 1, "morphs": 0, "mlu": 0, "std": 0}
+                    file_analysis["counts"][line_split[0]] = {"utterances": 1, "morphs": 0, "mlu": 0, "std": 0}
 
                 speaker = file_analysis["counts"][line_split[0]]
                 process_utterance_line(line_split[0], count_morphemes(morph_count))
