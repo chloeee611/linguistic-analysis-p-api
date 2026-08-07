@@ -1,4 +1,5 @@
 from analysis.helpers.utterance import *
+from analysis.types.api_types import MluBody
 from supabase import create_client, Client
 from dotenv import load_dotenv
 import os
@@ -9,7 +10,7 @@ url: str = os.getenv("SUPABASE_URL") or ""
 key: str = os.getenv("SUPABASE_PUBLISHABLE_KEY") or ""
 supabase: Client = create_client(url, key)
 
-def mlu(payload):
+def mlu(payload: MluBody):
     files_reference = {}
     file_analysis = {"counts": {}}
     morph_count = {}
@@ -27,7 +28,7 @@ def mlu(payload):
                     file_analysis["count"][line_split[0]] = {"utterances": 1, "morphs": 0, "mlu": 0, "std": 0}
 
                 speaker = file_analysis["counts"][line_split[0]]
-                process_line(line_split[0], count_morphemes(morph_count))
+                process_utterance_line(line_split[0], count_morphemes(morph_count))
                 speaker["morphs"] += sum(morph_count.values())
 
                 if len(morph_count) >= 1:

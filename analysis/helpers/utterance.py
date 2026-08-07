@@ -1,4 +1,6 @@
 from analysis.helpers.clean_word import clean_word
+from analysis.types.kwal_types import KwalMatch
+from analysis.types.lexrare_types import LexAnalysis
 
 INVALID_STARTS = ['0', '&', '+', '-', '#', '‡']
 IGNORED_MORPHS = ['xxx', 'www', '?', '!', '„', '.', ',', '(.)']
@@ -6,7 +8,7 @@ IGNORED_MORPHS = ['xxx', 'www', '?', '!', '„', '.', ',', '(.)']
 # Validates that a word is not empty or invalid
 validate = lambda w: w is not None and w is not '' and not w.isspace() and  not w.startswith('\x15') and w[0] not in INVALID_STARTS and w not in IGNORED_MORPHS
 
-def process_line(line: str, callback_func):
+def process_utterance_line(line: str, callback_func):
 
     # Track ignored bracketed sections
     angle_ignore = False
@@ -75,7 +77,7 @@ def process_line(line: str, callback_func):
 
         current_index += 1
 
-def count_words(search_word: list[str], speaker_dict: dict[str, int], summary: dict[str, int | set], line: str):
+def count_words(search_word: list[str] | None, speaker_dict: dict[str, int], summary: dict[str, int | set]):
     def count(word: str):
         if not search_word or word in search_word:
             # If word isn't in counts yet, initialise it
@@ -84,10 +86,23 @@ def count_words(search_word: list[str], speaker_dict: dict[str, int], summary: d
                 speaker_dict['counts'][word] += 1
             else:
                 speaker_dict['counts'][word] = 1
+
+            if word not in summary['unique_words_lookup']:
+                summary['unique_words_lookup'].add(word)
+                summary['unique_words_count'] += 1
             
             summary['total_count'] += 1
     
     return count
+
+def match_word(search_word: list[str] | None, line: str, line_number: int, current_speaker: str, kwal_summary: list[KwalMatch]):
+    def match(word: str):
+        if search_word and word in search_word:
+            # If word isn't in counts yet, initialise it
+            # Otherwise, add 1 to existing word entry
+            kwal_summary.append(KwalMatch(word, line_number, current_speaker, line))
+    
+    return match
 
 def count_morphemes(counts: dict[str, int]):
     def count(word: str):
@@ -96,3 +111,17 @@ def count_morphemes(counts: dict[str, int]):
         else:
             counts[word] = 1
     return count
+
+def is_utt_rare(common_words: set[str], speaker_summary: LexAnalysis):
+    def compare_common_words(word: str):
+        if not word:
+            return
+
+        if word in common_words:
+            speaker_summary.num_common_words += 1
+        else:
+            speaker_summary.num_rare_words += 1
+
+        speaker_summary.num_total_words += 1
+
+    return compare_common_words

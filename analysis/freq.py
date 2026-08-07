@@ -1,4 +1,5 @@
 from analysis.helpers.utterance import *
+from analysis.types.api_types import FreqBody
 from supabase import create_client, Client
 from dotenv import load_dotenv
 import os
@@ -9,7 +10,7 @@ url: str = os.getenv("SUPABASE_URL") or ""
 key: str = os.getenv("SUPABASE_PUBLISHABLE_KEY") or ""
 supabase: Client = create_client(url, key)
 
-def freq(payload):
+def freq(payload: FreqBody):
     files_reference = {}
     file_analysis = {}
     speaker_summaries = {}
@@ -38,21 +39,20 @@ def freq(payload):
                         "total_count": 0
                     }
                 
-                process_line(line_split[1], 
-                        count_words(payload["search"] if "search" in payload else None,
+                process_utterance_line(line_split[1], 
+                        count_words(payload.search,
                                     file_analysis[current_speaker],
-                                    speaker_summaries[current_speaker],
-                                    i))
+                                    speaker_summaries[current_speaker]))
 
         # After processing every line, move speaker_summaries into file_analysis for each speaker
         for key in speaker_summaries:
             file_analysis[key]["summary"] = {
-                "total_unique_words": str(speaker_summaries[key]["unique_words_count"]),
-                "total_items": str(speaker_summaries[key]["total_count"]),
-                "unique_word_ratio": "{:.3f}".format(
+                "total_unique_words": speaker_summaries[key]["unique_words_count"],
+                "total_items": speaker_summaries[key]["total_count"],
+                "unique_word_ratio": float("{:.3f}".format(
                     speaker_summaries[key]["unique_words_count"] 
                     / speaker_summaries[key]["total_count"] if speaker_summaries[key]["total_count"] > 0 else 0
-                ),
+                )),
             }
         
         files_reference[url.split("/")[-1].replace(".cha", "")] = file_analysis
