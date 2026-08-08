@@ -19,8 +19,8 @@ with open('./analysis/data/thorndike_lorge.json', 'r') as file:
 def lexrare(payload: LexBody):
     files_reference = {}
 
-    for url in payload.urls:
-        response = supabase.storage.from_("transcripts").download(url)
+    for transcript in payload.urls:
+        response = supabase.storage.from_("transcripts").download(transcript.file_url)
         data = response.decode("utf-8")
 
         speaker_summaries: dict[str, LexAnalysis] = {}
@@ -46,10 +46,10 @@ def lexrare(payload: LexBody):
         for key in speaker_summaries:
             speaker_summaries[key].percent_rare_words = float("{:.3f}".format(
                     speaker_summaries[key].num_rare_words
-                    / speaker_summaries[key].num_common_words if speaker_summaries[key].num_common_words > 0 else 0
+                    / speaker_summaries[key].num_total_words if speaker_summaries[key].num_total_words > 0 else 0
                 ))
                 
-        files_reference[url.split("/")[-1].replace(".cha", "")] = speaker_summaries
+        files_reference[transcript.id] = speaker_summaries
 
     
     return files_reference

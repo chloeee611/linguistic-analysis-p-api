@@ -15,8 +15,8 @@ def freq(payload: FreqBody):
     file_analysis = {}
     speaker_summaries = {}
 
-    for url in payload.urls:
-        response = supabase.storage.from_("transcripts").download(url)
+    for transcript in payload.urls:
+        response = supabase.storage.from_("transcripts").download(transcript.file_url)
         data = response.decode("utf-8")
 
         # Iterate each line of the text
@@ -26,7 +26,7 @@ def freq(payload: FreqBody):
             # Utterances start with * in the transcripts
             # Other lines are ignored for the FREQ analysis
             if line.startswith("*"):
-                current_speaker = line_split[0].replace(":", "")
+                current_speaker = line_split[0].replace(":", "").replace('*', '')
 
                 # If first time encountering this speaker, add an entry for them in file_analysis
                 if current_speaker not in file_analysis:
@@ -55,6 +55,6 @@ def freq(payload: FreqBody):
                 )),
             }
         
-        files_reference[url.split("/")[-1].replace(".cha", "")] = file_analysis
+        files_reference[transcript.id] = file_analysis
     
     return files_reference

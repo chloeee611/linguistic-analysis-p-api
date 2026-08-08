@@ -1,19 +1,23 @@
 from pydantic import BaseModel
 
+class TranscriptInstance(BaseModel):
+    id: str
+    file_url: str
+
 class FreqBody(BaseModel):
-    urls: list[str]
+    urls: list[TranscriptInstance]
     search: list[str] | None = None
 
 class KwalBody(BaseModel):
-    urls: list[str]
+    urls: list[TranscriptInstance]
     search_utterance: list[str] | None = None
 
 class MetadataBody(BaseModel):
-    urls: list[str]
+    urls: list[TranscriptInstance]
 
 class MluBody(BaseModel):
-    urls: list[str]
+    urls: list[TranscriptInstance]
 
 class LexBody(BaseModel):
-    urls: list[str]
+    urls: list[TranscriptInstance]
     target_tier: str

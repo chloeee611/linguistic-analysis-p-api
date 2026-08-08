@@ -16,8 +16,8 @@ def kwal(payload: KwalBody):
     # file_analysis = {}
     # speaker_summaries = {}
 
-    for url in payload.urls:
-        response = supabase.storage.from_("transcripts").download(url)
+    for transcript in payload.urls:
+        response = supabase.storage.from_("transcripts").download(transcript.file_url)
         data = response.decode("utf-8")
         kwal_summary: list[KwalMatch] = []
 
@@ -49,7 +49,7 @@ def kwal(payload: KwalBody):
             if line.startswith('%gra'):
                 print()
 
-        files_reference[url.split("/")[-1].replace(".cha", "")] = kwal_summary
+        files_reference[transcript.id] = kwal_summary
 
 
         # After processing every line, move speaker_summaries into file_analysis for each speaker

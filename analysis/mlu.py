@@ -16,19 +16,21 @@ def mlu(payload: MluBody):
     morph_count = {}
     file_scan = {"gra": [], "wor": [], "mor": []}
 
-    for url in payload.urls:
-        response = supabase.storage.from_("transcripts").download(url)
+    for transcript in payload.urls:
+        response = supabase.storage.from_("transcripts").download(transcript.file_url)
         data = response.decode("utf-8")
 
         for line in data.split("\n"):
             line_split = line.split("\t")
 
             if line.startswith("*"):
-                if line_split[0] not in file_analysis["counts"]:
-                    file_analysis["counts"][line_split[0]] = {"utterances": 1, "morphs": 0, "mlu": 0, "std": 0}
+                current_speaker = line_split[0].replace(":", "").replace('*', '')
 
-                speaker = file_analysis["counts"][line_split[0]]
-                process_utterance_line(line_split[0], count_morphemes(morph_count))
+                if current_speaker not in file_analysis["counts"]:
+                    file_analysis["counts"][current_speaker] = {"utterances": 1, "morphs": 0, "mlu": 0, "std": 0}
+
+                speaker = file_analysis["counts"][current_speaker]
+                process_utterance_line(line_split[1], count_morphemes(morph_count))
                 speaker["morphs"] += sum(morph_count.values())
 
                 if len(morph_count) >= 1:
@@ -46,6 +48,6 @@ def mlu(payload: MluBody):
                     case "mor:":
                         file_scan["mor"].append(line)
             
-        files_reference[url.split("/")[-1]] = file_analysis
+        files_reference[transcript.id] = file_analysis
 
     return files_reference

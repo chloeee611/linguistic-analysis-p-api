@@ -1,4 +1,5 @@
 from analysis.helpers.utterance import *
+from analysis.types.api_types import MetadataBody
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from datetime import datetime
@@ -11,13 +12,13 @@ url: str = os.getenv("SUPABASE_URL") or ""
 key: str = os.getenv("SUPABASE_PUBLISHABLE_KEY") or ""
 supabase: Client = create_client(url, key)
 
-def analyse_transcript_metadata(payload):
+def analyse_transcript_metadata(payload: MetadataBody):
     files_reference = {}
 
-    for url in payload.urls:
+    for transcript in payload.urls:
         metadata = {}
 
-        response = supabase.storage.from_("transcripts").download(url)
+        response = supabase.storage.from_("transcripts").download(transcript.file_url)
         data = response.decode("utf-8")
 
         # Iterate each line of the text
@@ -78,7 +79,7 @@ def analyse_transcript_metadata(payload):
                 # Therefore when we hit something that isn't @, we can break early
                 break
                         
-        files_reference[url] = metadata
+        files_reference[transcript.id] = metadata
     
     return files_reference
 
