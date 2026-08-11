@@ -6,7 +6,7 @@ INVALID_STARTS = ['0', '&', '+', '-', '#', '‡']
 IGNORED_MORPHS = ['xxx', 'www', '?', '!', '„', '.', ',', '(.)']
 
 # Validates that a word is not empty or invalid
-validate = lambda w: w is not None and w is not '' and not w.isspace() and  not w.startswith('\x15') and w[0] not in INVALID_STARTS and w not in IGNORED_MORPHS
+validate = lambda w: w is not None and w != '' and not w.isspace() and  not w.startswith('\x15') and w[0] not in INVALID_STARTS and w not in IGNORED_MORPHS
 
 def process_utterance_line(line: str, callback_func):
 
@@ -31,16 +31,22 @@ def process_utterance_line(line: str, callback_func):
 
         # If current word is the last, set next word to empty, otherwise populate next word
         if len(line_list) != current_index + 1:
-            next_word = clean_word(line_list[current_index + 1])
+            next_word = line_list[current_index + 1]
         else:
             next_word = None
 
         # Sections between angled brackets are ignored
-        if word.startswith('<'):
+        if word.startswith('<') and not word.endswith('>'):
             angle_ignore = True
+        
+        # Skips words which start and end with an angled bracket
+        elif word.startswith('<'):
+            current_index += 1
+            continue
+
+        # Ends the angle_ignore if it has been previously set to true
         elif word.endswith('>'):
             angle_ignore = False
-            continue
 
         # Noises or malformed words are skipped
         if next_word and next_word in ['[/]', '[//]', '[///]', '[/?]', '[/-]']:
@@ -52,10 +58,12 @@ def process_utterance_line(line: str, callback_func):
         # after the word to indicate what the word should have been. This handles these instances 
         # by skipping the unclear word and using the substituted word in the analysis instead
         elif next_word == '[:':
-            word = clean_word(line_list[current_index + 2]).replace(']', '')
+            word = line_list[current_index + 2].replace(']', '')
             if validate(word):
                 callback_func(word)
-            square_ignore = True
+            current_index += 3
+            next_word = line_list[current_index]
+            continue
 
         # Handles other instances of square brackets
         elif word.startswith('[') and not word.endswith(']'):
@@ -72,6 +80,8 @@ def process_utterance_line(line: str, callback_func):
         
         # Skip if currently ignoring text because of brackets
         elif not (square_ignore or angle_ignore):
+            word = clean_word(word)
+
             if validate(word):
                 callback_func(word)
 
