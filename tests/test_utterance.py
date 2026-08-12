@@ -1,6 +1,6 @@
 import pytest
 
-from analysis.helpers.utterance import process_utterance_line
+from analysis.helpers.utterance import *
 
 # Tests basic line processing
 def test_process_utterance_line_process_normal_words():
@@ -121,3 +121,13 @@ def test_process_utterance_line_use_replacement_word():
     )
 
     assert words == ["I", "want", "that"]
+
+# Tests the count_morphemes() function
+def test_count_morphemes_add_new_morpheme():
+    counts = {}
+
+    callback = count_morphemes(counts)
+
+    callback("juice")
+
+    assert counts["juice"] == 1
