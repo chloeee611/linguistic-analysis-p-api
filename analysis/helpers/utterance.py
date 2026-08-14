@@ -3,7 +3,7 @@ from analysis.types.kwal_types import KwalMatch
 from analysis.types.lexrare_types import LexAnalysis
 
 INVALID_STARTS = ['0', '&', '+', '-', '#', '‡']
-IGNORED_MORPHS = ['xxx', 'www', '?', '!', '„', '.', ',', '(.)']
+IGNORED_MORPHS = ['xxx', 'www', '?', '!', '„', '.', ',', '(.)', '...']
 
 # Validates that a word is not empty or invalid
 validate = lambda w: w is not None and w != '' and not w.isspace() and  not w.startswith('\x15') and w[0] not in INVALID_STARTS and w not in IGNORED_MORPHS
