@@ -38,7 +38,9 @@ def mlu(payload: MluBody):
 
                 morph_count = {}
 
-                speaker["mlu"] = round(speaker["morphs"] / speaker["utterances"], 3)
+                if speaker["utterances"] > 0:
+                    speaker["mlu"] = round(speaker["morphs"] / speaker["utterances"], 3)
+                    
             else:
                 match line_split[0].replace("%", ""):
                     case "gra:":
