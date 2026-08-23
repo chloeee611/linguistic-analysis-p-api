@@ -1,5 +1,19 @@
 from analysis.types.lexrare_types import LexAnalysis
 
+def analyse_mor_line(line: str):
+    line_list = line.split(' ')
+
+    mor_list: list[MorEntry] = []
+    
+    # Iterate through each word in the line
+    for mor in line_list:
+        if mor is None:
+            continue
+
+        mor_list.append(analyse_mor(mor))
+
+    return mor_list
+
 def process_mor_line(line: str, callback_func):
     # Array of all the words in a line
     line_list = line.split(' ')

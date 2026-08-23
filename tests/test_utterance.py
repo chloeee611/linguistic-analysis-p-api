@@ -8,7 +8,7 @@ def test_process_utterance_line_process_normal_words():
 
     process_utterance_line(
         "I saw a cat",
-        lambda word: words.append(word)
+        lambda word, _: words.append(word)
     )
 
     assert words == ["I", "saw", "a", "cat"]
@@ -19,7 +19,7 @@ def test_process_utterance_line_ignore_empty_line():
 
     process_utterance_line(
         "",
-        lambda word: words.append(word)
+        lambda word, _: words.append(word)
     )
 
     assert words == []
@@ -30,7 +30,7 @@ def test_process_utterance_line_ignore_whitespace():
 
     process_utterance_line(
         "   ",
-        lambda word: words.append(word)
+        lambda word, _: words.append(word)
     )
 
     assert words == []
@@ -46,7 +46,7 @@ def test_process_utterance_line_ignore_invalid_start(invalid_word):
 
     process_utterance_line(
         invalid_word,
-        lambda word: words.append(word)
+        lambda word, _: words.append(word)
     )
 
     assert words == []
@@ -62,7 +62,7 @@ def test_process_utterance_line_ignore_invalid_morph(ignored_word):
 
     process_utterance_line(
         ignored_word,
-        lambda word: words.append(word)
+        lambda word, _: words.append(word)
     )
 
     assert words == []
@@ -73,7 +73,7 @@ def test_process_utterance_line_valid_and_invalid_words():
 
     process_utterance_line(
         "I saw a xxx horse",
-        lambda word: words.append(word)
+        lambda word, _: words.append(word)
     )
 
     assert words == ["I", "saw", "a", "horse"]
@@ -84,7 +84,7 @@ def test_process_utterance_line_clean_words():
 
     process_utterance_line(
         "where is (my) teddy,",
-        lambda word: words.append(word)
+        lambda word, _: words.append(word)
     )
 
     assert words == ["where", "is", "my", "teddy"]
@@ -95,7 +95,7 @@ def test_process_utterance_line_ignore_angle_bracketed_words():
 
     process_utterance_line(
         "I love <fluffy> cats",
-        lambda word: words.append(word)
+        lambda word, _: words.append(word)
     )
 
     assert words == ["I", "love", "cats"]
@@ -106,7 +106,7 @@ def test_process_utterance_line_ignore_square_bracketed_words():
 
     process_utterance_line(
         "I [don't] want carrots",
-        lambda word: words.append(word)
+        lambda word, _: words.append(word)
     )
 
     assert words == ["I", "want", "carrots"]
@@ -117,7 +117,7 @@ def test_process_utterance_line_use_replacement_word():
 
     process_utterance_line(
         "I wn [: want] that",
-        lambda word: words.append(word)
+        lambda word, _: words.append(word)
     )
 
     assert words == ["I", "want", "that"]
@@ -128,6 +128,6 @@ def test_count_morphemes_add_new_morpheme():
 
     callback = count_morphemes(counts)
 
-    callback("juice")
+    callback("juice", 0)
 
     assert counts["juice"] == 1

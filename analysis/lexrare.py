@@ -25,7 +25,6 @@ def lexrare(payload: LexBody):
 
         speaker_summaries: dict[str, LexAnalysis] = {}
         current_speaker = ''
-        current_summary: LexAnalysis
 
         for line in data.split("\n"):
             line_split = line.split("\t")

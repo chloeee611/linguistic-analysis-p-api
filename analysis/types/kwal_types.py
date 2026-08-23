@@ -9,3 +9,13 @@ class KwalMatch:
         self.line_number = line_number
         self.speaker = speaker
         self.utterance = utterance
+
+class KwalSearch:
+    utterance_word: list[str] | None
+    mor_word_class: list[str] | None
+    gra_relation: list[str] | None
+
+    def __init__(self, utterance_word: list[str] | None, mor_word_class: list[str] | None, gra_relation: list[str] | None):
+            self.utterance_word = utterance_word
+            self.mor_word_class = mor_word_class
+            self.gra_relation = gra_relation

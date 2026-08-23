@@ -1,5 +1,7 @@
 from analysis.helpers.utterance import *
 from analysis.types.kwal_types import *
+from analysis.helpers.mor import * 
+from analysis.helpers.gra import * 
 from analysis.types.api_types import KwalBody
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -22,7 +24,8 @@ def kwal(payload: KwalBody):
         kwal_summary: list[KwalMatch] = []
 
         # Iterate each line of the text
-        for i, line in enumerate(data.split("\n")):
+        lines = data.split("\n")
+        for i, line in enumerate(lines):
             line_split = line.split("\t")
 
             # Utterances start with * in the transcripts
@@ -30,39 +33,30 @@ def kwal(payload: KwalBody):
             if line.startswith("*"):
                 current_speaker = line_split[0].replace(":", "").replace('*', '')
 
-                # # If first time encountering this speaker, add an entry for them in file_analysis
-                # if current_speaker not in file_analysis:
-                #     file_analysis[current_speaker] = {"counts": {}, "summary": {}}
+                mor_line = None
+                gra_line = None
 
-                #     # Speaker_summaries contains stats for each speaker
-                #     speaker_summaries[current_speaker] = {
-                #         "unique_words_lookup": set(),
-                #         "unique_words_count": 0,
-                #         "total_count": 0
-                #     }
+                if (payload.mor_filters):
+                    for line_tracker in range(i + 1, len(lines)):
+                        if lines[line_tracker].startswith('%mor'):
+                            mor_line = analyse_mor_line(lines[line_tracker].split('\t')[1])
+                            break
+                        elif lines[line_tracker].startswith('*'):
+                            break
+
+                if (payload.gra_filters):
+                    for line_tracker in range(i + 1, len(lines)):
+                        if lines[line_tracker].startswith('%gra'):
+                            gra_line = analyse_gra_line(lines[line_tracker].split('\t')[1])
+                            break
+                        elif lines[line_tracker].startswith('*'):
+                            break
+
+                search_terms = KwalSearch(payload.search_utterance, payload.mor_filters, payload.gra_filters)
                 
                 process_utterance_line(line_split[1], 
-                        match_word(payload.search_utterance, line, i + 1, current_speaker, kwal_summary))
-            if line.startswith('%mor'):
-                print()
-
-            if line.startswith('%gra'):
-                print()
+                        match_word(search_terms, line, gra_line, mor_line, i + 1, current_speaker, kwal_summary))
 
         files_reference[transcript.id] = kwal_summary
-
-
-        # After processing every line, move speaker_summaries into file_analysis for each speaker
-        # for key in speaker_summaries:
-        #     file_analysis[key]["summary"] = {
-        #         "total_unique_words": str(speaker_summaries[key]["unique_words_count"]),
-        #         "total_items": str(speaker_summaries[key]["total_count"]),
-        #         "unique_word_ratio": "{:.3f}".format(
-        #             speaker_summaries[key]["unique_words_count"] 
-        #             / speaker_summaries[key]["total_count"] if speaker_summaries[key]["total_count"] > 0 else 0
-        #         ),
-        #     }
-        
-        # files_reference[url.split("/")[-1].replace(".cha", "")] = file_analysis
     
     return files_reference

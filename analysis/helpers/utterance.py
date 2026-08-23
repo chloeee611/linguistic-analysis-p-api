@@ -1,6 +1,8 @@
 from analysis.helpers.clean_word import clean_word
-from analysis.types.kwal_types import KwalMatch
+from analysis.types.kwal_types import KwalMatch, KwalSearch
 from analysis.types.lexrare_types import LexAnalysis
+from analysis.helpers.mor import *
+from analysis.helpers.gra import *
 
 INVALID_STARTS = ['0', '&', '+', '-', '#', '‡']
 IGNORED_MORPHS = ['xxx', 'www', '?', '!', '„', '.', ',', '(.)', '...']
@@ -60,7 +62,7 @@ def process_utterance_line(line: str, callback_func):
         elif next_word == '[:':
             word = line_list[current_index + 2].replace(']', '')
             if validate(word):
-                callback_func(word)
+                callback_func(word, current_index)
             current_index += 3
             next_word = line_list[current_index]
             continue
@@ -83,12 +85,12 @@ def process_utterance_line(line: str, callback_func):
             word = clean_word(word)
 
             if validate(word):
-                callback_func(word)
+                callback_func(word, current_index)
 
         current_index += 1
 
 def count_words(search_word: list[str] | None, speaker_dict: dict[str, int], summary: dict[str, int | set]):
-    def count(word: str):
+    def count(word: str, _):
         if not search_word or word in search_word:
             # If word isn't in counts yet, initialise it
             # Otherwise, add 1 to existing word entry
@@ -105,17 +107,26 @@ def count_words(search_word: list[str] | None, speaker_dict: dict[str, int], sum
     
     return count
 
-def match_word(search_word: list[str] | None, line: str, line_number: int, current_speaker: str, kwal_summary: list[KwalMatch]):
-    def match(word: str):
-        if search_word and word in search_word:
-            # If word isn't in counts yet, initialise it
-            # Otherwise, add 1 to existing word entry
-            kwal_summary.append(KwalMatch(word, line_number, current_speaker, line))
+def match_word(search_terms: KwalSearch, line: str, gra_line: list[GraEntry] | None, mor_line: list[MorEntry] | None, line_number: int, current_speaker: str, kwal_summary: list[KwalMatch]):
+    def match(word: str, index: int):
+        current_mor = None if mor_line is None or len(mor_line) < index + 1 else mor_line[index]
+        current_gra = None if gra_line is None or len(gra_line) < index + 1 else gra_line[index]
+
+        if (search_terms.utterance_word and word not in search_terms.utterance_word):
+            return
+
+        if (current_mor and search_terms.mor_word_class and current_mor.word_class not in search_terms.mor_word_class):
+            return
+
+        if (current_gra and search_terms.gra_relation and current_gra.relation not in search_terms.gra_relation):
+            return
+        
+        kwal_summary.append(KwalMatch(word, line_number, current_speaker, line))
     
     return match
 
 def count_morphemes(counts: dict[str, int]):
-    def count(word: str):
+    def count(word: str, _):
         if word in counts:
             counts[word] += 1
         else:
@@ -123,7 +134,7 @@ def count_morphemes(counts: dict[str, int]):
     return count
 
 def is_utt_rare(common_words: set[str], speaker_summary: LexAnalysis):
-    def compare_common_words(word: str):
+    def compare_common_words(word: str, _):
         if not word:
             return
 
