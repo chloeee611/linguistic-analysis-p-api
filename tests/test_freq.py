@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock
 from analysis.types.api_types import FreqBody, TranscriptInstance
+from analysis.types.freq_types import *
 
 import analysis.freq as freq_module
 
@@ -43,12 +44,12 @@ def test_freq_counts_words(monkeypatch):
     assert "CHI" in analysis
     assert "LIN" in analysis
 
-    assert analysis["CHI"]["counts"]["this"] == 3
-    assert analysis["CHI"]["counts"]["wine"] == 1
-    assert analysis["CHI"]["counts"]["and"] == 1
+    assert analysis["CHI"].counts["this"] == 3
+    assert analysis["CHI"].counts["wine"] == 1
+    assert analysis["CHI"].counts["and"] == 1
 
-    assert analysis["LIN"]["counts"]["this"] == 1
-    assert analysis["LIN"]["counts"]["juice"] == 1
+    assert analysis["LIN"].counts["this"] == 1
+    assert analysis["LIN"].counts["juice"] == 1
 
 # Tests that FREQ will calculate the unique words ratio correctly
 def test_freq_calculate_unique_words_ratio(monkeypatch):
@@ -85,8 +86,8 @@ def test_freq_calculate_unique_words_ratio(monkeypatch):
 
     result = freq_module.freq(payload)
 
-    analysis = result["test_transcript"]["CHI"]["summary"]
+    analysis = result["test_transcript"]["CHI"].summary
 
-    assert analysis["total_unique_words"] == 3
-    assert analysis["total_items"] == 5
-    assert analysis["unique_word_ratio"] == 0.6
+    assert analysis.total_unique_words == 3
+    assert analysis.total_items == 5
+    assert analysis.unique_word_ratio == 0.6

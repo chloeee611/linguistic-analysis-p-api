@@ -3,6 +3,7 @@ from analysis.types.kwal_types import KwalMatch, KwalSearch
 from analysis.types.lexrare_types import LexAnalysis
 from analysis.helpers.mor import *
 from analysis.helpers.gra import *
+from analysis.types.freq_types import *
 
 INVALID_STARTS = ['0', '&', '+', '-', '#', '‡']
 IGNORED_MORPHS = ['xxx', 'www', '?', '!', '„', '.', ',', '(.)', '...']
@@ -89,21 +90,21 @@ def process_utterance_line(line: str, callback_func):
 
         current_index += 1
 
-def count_words(search_word: list[str] | None, speaker_dict: dict[str, int], summary: dict[str, int | set]):
+def count_words(search_word: list[str] | None, speaker_dict: FreqAnalysis, tracker: FreqSpeakerTracker):
     def count(word: str, _):
         if not search_word or word in search_word:
             # If word isn't in counts yet, initialise it
             # Otherwise, add 1 to existing word entry
-            if word in speaker_dict['counts']:
-                speaker_dict['counts'][word] += 1
+            if word in speaker_dict.counts:
+                speaker_dict.counts[word] += 1
             else:
-                speaker_dict['counts'][word] = 1
+                speaker_dict.counts[word] = 1
 
-            if word not in summary['unique_words_lookup']:
-                summary['unique_words_lookup'].add(word)
-                summary['unique_words_count'] += 1
+            if word not in tracker.unique_words_lookup:
+                tracker.unique_words_lookup.add(word)
+                tracker.unique_words_count += 1
             
-            summary['total_count'] += 1
+            tracker.total_count += 1
     
     return count
 

@@ -1,4 +1,5 @@
 from analysis.helpers.utterance import *
+from analysis.types.freq_types import *
 from analysis.types.api_types import FreqBody
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -11,9 +12,9 @@ key: str = os.getenv("SUPABASE_PUBLISHABLE_KEY") or ""
 supabase: Client = create_client(url, key)
 
 def freq(payload: FreqBody):
-    files_reference = {}
-    file_analysis = {}
-    speaker_summaries = {}
+    files_reference: dict[str, dict[str, FreqAnalysis]] = {}
+    file_analysis: dict[str, FreqAnalysis] = {}
+    speaker_trackers: dict[str, FreqSpeakerTracker] = {}
 
     for transcript in payload.urls:
         response = supabase.storage.from_("transcripts").download(transcript.file_url)
@@ -30,30 +31,23 @@ def freq(payload: FreqBody):
 
                 # If first time encountering this speaker, add an entry for them in file_analysis
                 if current_speaker not in file_analysis:
-                    file_analysis[current_speaker] = {"counts": {}, "summary": {}}
+                    file_analysis[current_speaker] = FreqAnalysis()
 
                     # Speaker_summaries contains stats for each speaker
-                    speaker_summaries[current_speaker] = {
-                        "unique_words_lookup": set(),
-                        "unique_words_count": 0,
-                        "total_count": 0
-                    }
+                    speaker_trackers[current_speaker] = FreqSpeakerTracker()
                 
                 process_utterance_line(line_split[1], 
                         count_words(payload.search,
                                     file_analysis[current_speaker],
-                                    speaker_summaries[current_speaker]))
+                                    speaker_trackers[current_speaker]))
 
         # After processing every line, move speaker_summaries into file_analysis for each speaker
-        for key in speaker_summaries:
-            file_analysis[key]["summary"] = {
-                "total_unique_words": speaker_summaries[key]["unique_words_count"],
-                "total_items": speaker_summaries[key]["total_count"],
-                "unique_word_ratio": float("{:.3f}".format(
-                    speaker_summaries[key]["unique_words_count"] 
-                    / speaker_summaries[key]["total_count"] if speaker_summaries[key]["total_count"] > 0 else 0
-                )),
-            }
+        for key in speaker_trackers:
+            file_analysis[key].summary = FreqSpeakerSummary(
+                speaker_trackers[key].unique_words_count, 
+                speaker_trackers[key].total_count, 
+                speaker_trackers[key].get_unique_word_ratio()
+            )
         
         files_reference[transcript.id] = file_analysis
     
