@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+# API body types
+
 class TranscriptInstance(BaseModel):
     id: str
     file_url: str

@@ -1,5 +1,6 @@
 from analysis.types.lexrare_types import LexAnalysis
 
+# Adds each part of a mor line to mor_list 
 def analyse_mor_line(line: str):
     line_list = line.split(' ')
 
@@ -35,6 +36,9 @@ class MorEntry:
     conjunction_type: str = ''
     conjunction_word: str = ''
 
+# Processes each part of the mor tier and adds it to the relevant class variables in MorEntry
+# E.g. in a transcript, a speaker says "ears" and this is marked as "noun|ear-Plur" in the mor tier
+# The function will process this by adding "noun" to word_class, "ear" to word, and "Plur" to word_modifiers
 def analyse_mor(mor:str) -> MorEntry:
     mor_desc = MorEntry()
     mor_split = mor.split('|')
@@ -60,11 +64,10 @@ def analyse_mor(mor:str) -> MorEntry:
         if len(end_split) > 1:
             mor_desc.word_modifiers = end_split[1:]
         mor_desc.word = end_split[0]
-        
 
     return mor_desc 
 
-
+# Compares words with the rare words list for lexrare analysis
 def is_mor_rare(common_words: set[str], speaker_summary: LexAnalysis):
     def compare_common_words(mor: MorEntry):
         if not mor.word:

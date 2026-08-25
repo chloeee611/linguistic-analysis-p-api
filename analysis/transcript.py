@@ -12,12 +12,14 @@ url: str = os.getenv("SUPABASE_URL") or ""
 key: str = os.getenv("SUPABASE_PUBLISHABLE_KEY") or ""
 supabase: Client = create_client(url, key)
 
+# Handles the analysis of metadata for each transcript
 def analyse_transcript_metadata(payload: MetadataBody):
     files_reference = {}
 
     for transcript in payload.urls:
         metadata = {}
 
+        # Requests the .cha file from storage and decodes into text format
         response = supabase.storage.from_("transcripts").download(transcript.file_url)
         data = response.decode("utf-8")
 
@@ -32,14 +34,18 @@ def analyse_transcript_metadata(payload: MetadataBody):
                     parsed_property = property.replace(":", "").replace("@", "").replace(' ', '_').lower()
                     parsed_value = ''
 
+                    # Formats each property and adds to parsed_value
                     match parsed_property:
                         case "date" | "birth_of_chi":
+                            # Converts the date to an ISO format consumable by the DB
                             parsed_value = datetime.strptime(value, '%d-%b-%Y').isoformat()
                         case "languages" | "types" | "transcriber":
+                            # Languages is a comma separated list
                             parsed_value = value.split(', ')
                         case "tape_location" | "media" | "situation":
                             parsed_value = value
                         case "comment":
+                            # Comments may already have been added, so appends any new value
                             if (parsed_property in metadata):
                                 metadata[parsed_property].append(value)
                             else:
@@ -47,6 +53,7 @@ def analyse_transcript_metadata(payload: MetadataBody):
 
                             continue
                         case "participants":
+                            # Creates a participant lookup using the code and name
                             participants = {}
                             for speaker in value.split(', '):
                                 split_speaker = speaker.split(' ')
@@ -54,6 +61,7 @@ def analyse_transcript_metadata(payload: MetadataBody):
                                     participants[split_speaker[0]] = split_speaker[1]
                             parsed_value = participants
                         case "time_duration":
+                            # Creates a dict with the start and end times of the transcript
                             duration_values = {}
                             split_value = value.split('-')
                             if (len(split_value) > 1):
@@ -61,6 +69,7 @@ def analyse_transcript_metadata(payload: MetadataBody):
                                 duration_values["end"] = split_value[1]
                             parsed_value = duration_values
                         case "id":
+                            # ID is a list of metadata stored in constant order, which needs parsed
                             id_dict = parse_id(value)
 
                             if (parsed_property in metadata):

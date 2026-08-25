@@ -11,12 +11,15 @@ url: str = os.getenv("SUPABASE_URL") or ""
 key: str = os.getenv("SUPABASE_PUBLISHABLE_KEY") or ""
 supabase: Client = create_client(url, key)
 
+# Handles the FREQ analysis
 def freq(payload: FreqBody):
+    # Stores the data in the below dictionary objects as it iterates through each line of the transcript
     files_reference: dict[str, dict[str, FreqAnalysis]] = {}
     file_analysis: dict[str, FreqAnalysis] = {}
     speaker_trackers: dict[str, FreqSpeakerTracker] = {}
 
     for transcript in payload.urls:
+        # Requests the .cha file from storage and decodes into text format
         response = supabase.storage.from_("transcripts").download(transcript.file_url)
         data = response.decode("utf-8")
 
@@ -33,7 +36,7 @@ def freq(payload: FreqBody):
                 if current_speaker not in file_analysis:
                     file_analysis[current_speaker] = FreqAnalysis()
 
-                    # Speaker_summaries contains stats for each speaker
+                    # speaker_trackers contains stats for each speaker
                     speaker_trackers[current_speaker] = FreqSpeakerTracker()
                 
                 process_utterance_line(line_split[1], 
@@ -41,7 +44,7 @@ def freq(payload: FreqBody):
                                     file_analysis[current_speaker],
                                     speaker_trackers[current_speaker]))
 
-        # After processing every line, move speaker_summaries into file_analysis for each speaker
+        # After processing every line, move speaker_trackers into file_analysis for each speaker
         for key in speaker_trackers:
             file_analysis[key].summary = FreqSpeakerSummary(
                 speaker_trackers[key].unique_words_count, 

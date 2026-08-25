@@ -1,3 +1,4 @@
+# Summarises results for LEXRARE analysis
 class LexAnalysis:
     code: str
     num_common_words: int 

@@ -1,3 +1,4 @@
+# Tracks the FREQ stats
 class FreqSpeakerTracker:
     unique_words_lookup: set 
     unique_words_count: int 
@@ -21,6 +22,7 @@ class FreqAnalysis:
     def __init__(self):
         self.counts = {}
 
+# Final FREQ stats are summarised here
 class FreqSpeakerSummary:
     total_unique_words: int
     total_items: int

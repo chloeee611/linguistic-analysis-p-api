@@ -13,19 +13,23 @@ url: str = os.getenv("SUPABASE_URL") or ""
 key: str = os.getenv("SUPABASE_PUBLISHABLE_KEY") or ""
 supabase: Client = create_client(url, key)
 
+# The LEXRARE analysis works by comparing each word to the Thorndik-Lorge list of rare words 
 with open('./analysis/data/thorndike_lorge.json', 'r') as file:
     common_word_set: set[str] = set(json.load(file))
 
+# Handles the LEXRARE analysis
 def lexrare(payload: LexBody):
     files_reference = {}
 
     for transcript in payload.urls:
+        # Requests the .cha file from storage and decodes into text format
         response = supabase.storage.from_("transcripts").download(transcript.file_url)
         data = response.decode("utf-8")
 
         speaker_summaries: dict[str, LexAnalysis] = {}
         current_speaker = ''
 
+        # Iterates through each line in the transcript
         for line in data.split("\n"):
             line_split = line.split("\t")
 
@@ -37,18 +41,19 @@ def lexrare(payload: LexBody):
 
                 if payload.target_tier == 'utt':
                     process_utterance_line(line_split[1], 
-                            is_utt_rare(common_word_set, speaker_summaries[current_speaker]))
+                        is_utt_rare(common_word_set, speaker_summaries[current_speaker]))
             elif line.startswith('%mor') and payload.target_tier == 'mor':
                 process_mor_line(line_split[1], 
                         is_mor_rare(common_word_set, speaker_summaries[current_speaker]))
 
+        # Iterates through each entry in speaker_summaries
+        # Calculates the % of rare words by doing total number of rare words divided by total number of words
         for key in speaker_summaries:
             speaker_summaries[key].percent_rare_words = float("{:.3f}".format(
-                    speaker_summaries[key].num_rare_words
-                    / speaker_summaries[key].num_total_words if speaker_summaries[key].num_total_words > 0 else 0
-                ))
+                speaker_summaries[key].num_rare_words
+                / speaker_summaries[key].num_total_words if speaker_summaries[key].num_total_words > 0 else 0
+            ))
                 
         files_reference[transcript.id] = speaker_summaries
 
-    
     return files_reference

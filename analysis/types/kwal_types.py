@@ -1,3 +1,4 @@
+# Summarises KWAL results if a match is found
 class KwalMatch:
     keyword: str
     line_number: int
@@ -10,6 +11,7 @@ class KwalMatch:
         self.speaker = speaker
         self.utterance = utterance
 
+# Building up the search request which is passed to the match_words function
 class KwalSearch:
     utterance_word: list[str] | None
     mor_word_class: list[str] | None

@@ -11,6 +11,7 @@ IGNORED_MORPHS = ['xxx', 'www', '?', '!', '„', '.', ',', '(.)', '...']
 # Validates that a word is not empty or invalid
 validate = lambda w: w is not None and w != '' and not w.isspace() and  not w.startswith('\x15') and w[0] not in INVALID_STARTS and w not in IGNORED_MORPHS
 
+# Goes through each line in a transcript and strips the invalid data
 def process_utterance_line(line: str, callback_func):
 
     # Track ignored bracketed sections
@@ -90,6 +91,7 @@ def process_utterance_line(line: str, callback_func):
 
         current_index += 1
 
+# Multi-step function that counts and tracks the number of words for a speaker
 def count_words(search_word: list[str] | None, speaker_dict: FreqAnalysis, tracker: FreqSpeakerTracker):
     def count(word: str, _):
         if not search_word or word in search_word:
@@ -108,6 +110,7 @@ def count_words(search_word: list[str] | None, speaker_dict: FreqAnalysis, track
     
     return count
 
+# Finds matching words based on the user-specified search terms, can also search in the mor and gra tiers
 def match_word(search_terms: KwalSearch, line: str, gra_line: list[GraEntry] | None, mor_line: list[MorEntry] | None, line_number: int, current_speaker: str, kwal_summary: list[KwalMatch]):
     def match(word: str, index: int):
         current_mor = None if mor_line is None or len(mor_line) < index + 1 else mor_line[index]
@@ -126,6 +129,7 @@ def match_word(search_terms: KwalSearch, line: str, gra_line: list[GraEntry] | N
     
     return match
 
+# Tracks the total words which is required for mlu.py
 def count_morphemes(counts: dict[str, int]):
     def count(word: str, _):
         if word in counts:
@@ -134,6 +138,7 @@ def count_morphemes(counts: dict[str, int]):
             counts[word] = 1
     return count
 
+# Tracks the total rare/common words which is required for lexrare.py
 def is_utt_rare(common_words: set[str], speaker_summary: LexAnalysis):
     def compare_common_words(word: str, _):
         if not word:

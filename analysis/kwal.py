@@ -13,12 +13,12 @@ url: str = os.getenv("SUPABASE_URL") or ""
 key: str = os.getenv("SUPABASE_PUBLISHABLE_KEY") or ""
 supabase: Client = create_client(url, key)
 
+# Handles the KWAL analysis
 def kwal(payload: KwalBody):
     files_reference = {}
-    # file_analysis = {}
-    # speaker_summaries = {}
 
     for transcript in payload.urls:
+        # Requests the .cha file from storage and decodes into text format
         response = supabase.storage.from_("transcripts").download(transcript.file_url)
         data = response.decode("utf-8")
         kwal_summary: list[KwalMatch] = []
@@ -28,14 +28,14 @@ def kwal(payload: KwalBody):
         for i, line in enumerate(lines):
             line_split = line.split("\t")
 
-            # Utterances start with * in the transcripts
-            # Other lines are ignored for the FREQ analysis
+            # Utterances start with asterisk in the transcripts
             if line.startswith("*"):
                 current_speaker = line_split[0].replace(":", "").replace('*', '')
 
                 mor_line = None
                 gra_line = None
 
+                # Mor tier lines are added to mor_line and analysed by analyse_mor_line in from mor.py
                 if (payload.mor_filters):
                     for line_tracker in range(i + 1, len(lines)):
                         if lines[line_tracker].startswith('%mor'):
@@ -44,6 +44,7 @@ def kwal(payload: KwalBody):
                         elif lines[line_tracker].startswith('*'):
                             break
 
+                # Gra tier lines are added to gra_line and analysed by analyse_gra_line in from gra.py
                 if (payload.gra_filters):
                     for line_tracker in range(i + 1, len(lines)):
                         if lines[line_tracker].startswith('%gra'):
@@ -52,6 +53,7 @@ def kwal(payload: KwalBody):
                         elif lines[line_tracker].startswith('*'):
                             break
 
+                # The user specified search terms are added to search_terms
                 search_terms = KwalSearch(payload.search_utterance, payload.mor_filters, payload.gra_filters)
                 
                 process_utterance_line(line_split[1], 

@@ -1,5 +1,6 @@
 from analysis.types.lexrare_types import LexAnalysis
 
+# Adds each part of a gra ine to gra_list
 def analyse_gra_line(line: str):
     line_list = line.split(' ')
 
@@ -19,6 +20,9 @@ class GraEntry:
     position: int = 0
     relation: str = ''
 
+# Each part of a gra line is always made up of three components, such as "4|3|OBJ"
+# This function splits them into three separate lists
+# "4" is its position in the utterance, "3" is the position of the head of the utterance, "OBJ" is the relation of the word to the head
 def analyse_gra(gra:str):
     gra_desc = GraEntry()
     gra_split = gra.split('|')
@@ -31,5 +35,4 @@ def analyse_gra(gra:str):
     except:
         print(gra_split[0])
 
-        
     return gra_desc
